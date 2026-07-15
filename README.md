@@ -2,6 +2,15 @@
 
 Simulation und Auslegung eines Kraftwerks-/Energiekonzepts auf Basis von Ammoniak (NH3) als Energieträger.
 
+## Dokumentstatus
+
+| Eigenschaft | Wert |
+|-------------|------|
+| Version | 0.1 (Entwurf) |
+| Bearbeitungsstand | Entwurf |
+| Letzte Änderung | 15.07.2026 |
+| Autor | Projekt NH3-PowerPlant |
+
 ## Über das Projekt
 
 Dieses Projekt untersucht die Nutzung von Ammoniak (NH3) als CO2-freien Energieträger und Brennstoff für
@@ -12,7 +21,7 @@ energetischer Verwertung von Ammoniak.
 
 ## Projektstruktur
 
-```
+```txt
 NH3-PowerPlant/
 ├── docs/          # Dokumentation, Konzepte, Spezifikationen
 ├── python/        # Python-Quellcode (Modelle, Simulationen, Tools)

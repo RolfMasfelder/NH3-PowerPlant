@@ -36,3 +36,6 @@ Thumbs.db
 # Data (große/erzeugte Dateien nicht versionieren, ggf. anpassen)
 data/*
 !data/.gitkeep
+
+# gefundene Dokumente
+dissertation_prof_dr_kail.pdf
