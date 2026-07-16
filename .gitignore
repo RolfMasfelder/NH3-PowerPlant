@@ -37,5 +37,14 @@ Thumbs.db
 data/*
 !data/.gitkeep
 
+# Anlegen und auch leer in git versionieren, damit der Ordner existiert
+!examples/.gitkeep
+!src/nh3powerplant/components/.gitkeep
+!src/nh3powerplant/fluids/.gitkeep
+!src/nh3powerplant/simulation/.gitkeep
+!src/nh3powerplant/validation/.gitkeep
+!src/nh3powerplant/reporting/.gitkeep
+
+
 # gefundene Dokumente
 dissertation_prof_dr_kail.pdf
