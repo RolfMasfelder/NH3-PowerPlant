@@ -9,8 +9,6 @@ dist/
 
 # Virtual environments
 venv/
-.venv/
-env/
 
 # Jupyter
 .ipynb_checkpoints/
@@ -37,8 +35,12 @@ Thumbs.db
 data/*
 !data/.gitkeep
 
+# results werden nicht in git versioniert, da sie jederzeit eindeutig reproduziert werden können
+results/
+
 # Anlegen und auch leer in git versionieren, damit der Ordner existiert
 !examples/.gitkeep
+!results/.gitkeep
 !src/nh3powerplant/components/.gitkeep
 !src/nh3powerplant/fluids/.gitkeep
 !src/nh3powerplant/simulation/.gitkeep
