@@ -1,0 +1,109 @@
+# Diskussion
+
+**Projekt:** NH3-PowerPlant
+
+**Dokument:** 09_Diskussion.md
+
+**Simulation:** {{ run.id }}
+
+**Datum:** {{ run.timestamp }}
+
+---
+
+# 1 Ziel der Diskussion
+
+Die Diskussion bewertet die Ergebnisse der Simulation hinsichtlich ihrer thermodynamischen Aussagekraft.
+
+Im Gegensatz zum Ergebniskapitel werden die Resultate hier nicht erneut dargestellt, sondern eingeordnet und hinsichtlich ihrer Ursachen bewertet.
+
+Alle numerischen Werte stammen aus der automatisch erzeugten Ergebnisdokumentation.
+
+---
+
+# 2 Erreichen der Projektziele
+
+| Fragestellung | Bewertung |
+|---------------|-----------|
+{% for goal in goals %}
+| {{ goal.question }} | {{ goal.result }} |
+{% endfor %}
+
+---
+
+# 3 Thermodynamische Bewertung
+
+{{ thermodynamic_discussion }}
+
+---
+
+# 4 Exergieanalyse
+
+{{ exergy_discussion }}
+
+---
+
+# 5 Einfluss der Wärmepumpe
+
+{{ heatpump_discussion }}
+
+---
+
+# 6 Einfluss der Kondensationswärme
+
+{{ condenser_discussion }}
+
+---
+
+# 7 Variantenvergleich
+
+{{ comparison_discussion }}
+
+---
+
+# 8 Sensitivitätsanalyse
+
+{{ sensitivity_discussion }}
+
+---
+
+# 9 Grenzen des Modells
+
+Die vorliegenden Ergebnisse beruhen auf den in Kapitel 05 definierten Modellannahmen.
+
+Nicht berücksichtigt wurden insbesondere
+
+- instationäre Betriebszustände,
+- Druckverluste außerhalb der Hauptkomponenten,
+- Regelungsvorgänge,
+- mechanische Alterung,
+- wirtschaftliche Randbedingungen.
+
+Die Ergebnisse sind daher als thermodynamische Bewertung des entwickelten Referenzmodells zu verstehen.
+
+---
+
+# 10 Beantwortung der Forschungsfrage
+
+{{ hypothesis_result }}
+
+---
+
+# 11 Ausblick
+
+Die Simulation zeigt mehrere mögliche Erweiterungen.
+
+{% for outlook in outlook_items %}
+- {{ outlook }}
+{% endfor %}
+
+---
+
+# 12 Zusammenfassung
+
+{{ discussion_summary }}
+
+---
+
+*Dieses Dokument wurde automatisch aus den Simulationsergebnissen erzeugt.*
+
+*Interpretationen werden anhand definierter Bewertungsregeln erzeugt und enthalten keine manuell eingefügten Berechnungsergebnisse.*
