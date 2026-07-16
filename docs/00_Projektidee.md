@@ -4,6 +4,7 @@
 
 | Eigenschaft | Wert |
 |-------------|------|
+| Dokument | 00_Projektidee.md |
 | Version | 0.1 (Entwurf) |
 | Bearbeitungsstand | Entwurf |
 | Letzte Änderung | 15.07.2026 |
