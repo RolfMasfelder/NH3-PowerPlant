@@ -1,0 +1,117 @@
+# Ergebnisse
+
+**Projekt:** NH3-PowerPlant
+
+**Dokument:** 08_Ergebnisse.md
+
+**Simulation:** {{ run.id }}
+
+**Datum:** {{ run.timestamp }}
+
+---
+
+# 1 Einleitung
+
+Dieses Kapitel enthält die Ergebnisse der Simulation des in Kapitel 05 beschriebenen Referenzmodells.
+
+Sämtliche Tabellen und Abbildungen wurden automatisch aus den Simulationsdaten erzeugt.
+
+Die Dokumentation enthält keine manuell eingetragenen Berechnungsergebnisse.
+
+---
+
+# 2 Simulationsparameter
+
+| Parameter | Wert |
+|-----------|------:|
+{% for p in parameters %}
+| {{ p.name }} | {{ p.value }} {{ p.unit }} |
+{% endfor %}
+
+---
+
+# 3 Zustandsgrößen
+
+{{ state_table }}
+
+---
+
+# 4 Energiebilanz
+
+Die nachfolgende Tabelle zeigt die Energiebilanz sämtlicher Hauptkomponenten.
+
+{{ energy_table }}
+
+---
+
+# 5 Exergiebilanz
+
+{{ exergy_table }}
+
+---
+
+# 6 Wirkungsgrade
+
+{{ efficiency_table }}
+
+---
+
+# 7 Temperaturverläufe
+
+Die folgenden Diagramme wurden automatisch erzeugt.
+
+## Wärmequelle
+
+![]({{ figures.source_temperature }})
+
+---
+
+## NH₃-Kreisprozess
+
+![]({{ figures.ts }})
+
+---
+
+## p-h-Diagramm
+
+![]({{ figures.ph }})
+
+---
+
+## Sankey-Diagramm Energie
+
+![]({{ figures.energy_sankey }})
+
+---
+
+## Sankey-Diagramm Exergie
+
+![]({{ figures.exergy_sankey }})
+
+---
+
+# 8 Interpretation
+
+{{ interpretation }}
+
+---
+
+# 9 Konsistenzprüfung
+
+| Prüfung | Ergebnis |
+|----------|-----------|
+{% for test in validation %}
+| {{ test.name }} | {{ test.result }} |
+{% endfor %}
+
+---
+
+# 10 Zusammenfassung
+
+{{ summary }}
+
+---
+
+*Dieses Dokument wurde automatisch aus den Simulationsdaten erzeugt.*
+
+*Manuelle Änderungen gehen bei der nächsten Dokumentengenerierung verloren.*
