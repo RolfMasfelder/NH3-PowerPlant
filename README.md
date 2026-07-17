@@ -19,6 +19,15 @@ energetischer Verwertung von Ammoniak.
 
 > **Status:** Frühes Entwicklungsstadium (Work in Progress). API und Struktur können sich noch ändern.
 
+Dadurch bekommt das Projekt von Anfang an eine klare Trennung:
+
+core → allgemeine Infrastruktur.
+state → thermodynamische Zustände.
+components → physikalische Bauteile.
+simulation → Orchestrierung.
+reporting → Berichte.
+
+
 ## Projektstruktur
 
 ```txt
