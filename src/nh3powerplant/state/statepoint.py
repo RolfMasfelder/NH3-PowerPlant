@@ -4,8 +4,10 @@ Thermodynamic state point.
 
 from __future__ import annotations
 
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from typing import Any
+
+from nh3powerplant.core.provenance import Provenance
 
 from .phase import Phase
 
@@ -42,7 +44,7 @@ class StatePoint:
 
     phase: Phase = Phase.UNKNOWN
 
-    metadata: dict[str, Any] = field(default_factory=dict)
+    provenance: Provenance | None = None
 
     def is_complete(self) -> bool:
         """
@@ -67,7 +69,7 @@ class StatePoint:
             "density": self.density,
             "quality": self.quality,
             "phase": self.phase.value,
-            "metadata": self.metadata,
+            "provenance": self.provenance,
         }
 
     @classmethod
@@ -89,6 +91,6 @@ class StatePoint:
 
         obj.phase = Phase(data.get("phase", "unknown"))
 
-        obj.metadata = data.get("metadata", {})
+        obj.provenance = data.get("provenance")
 
         return obj
