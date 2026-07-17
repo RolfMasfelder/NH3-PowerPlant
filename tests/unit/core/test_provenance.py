@@ -1,7 +1,7 @@
 from nh3powerplant.core import Provenance
 
 
-def test_provenance():
+def test_provenance() -> None:
 
     p = Provenance(
 

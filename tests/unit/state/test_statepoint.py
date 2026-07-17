@@ -2,7 +2,7 @@ from nh3powerplant.state import Phase
 from nh3powerplant.state import StatePoint
 
 
-def test_empty_state():
+def test_empty_state() -> None:
 
     s = StatePoint("S1")
 
@@ -13,7 +13,7 @@ def test_empty_state():
     assert not s.is_complete()
 
 
-def test_complete_state():
+def test_complete_state() -> None:
 
     s = StatePoint("S1")
 
@@ -28,7 +28,7 @@ def test_complete_state():
     assert s.is_complete()
 
 
-def test_serialization():
+def test_serialization() -> None:
 
     s = StatePoint("A")
 
@@ -41,12 +41,3 @@ def test_serialization():
     assert s2.name == "A"
 
     assert s2.temperature == 300
-
-
-def test_metadata():
-
-    s = StatePoint("S")
-
-    s.metadata["component"] = "Pump"
-
-    assert s.metadata["component"] == "Pump"

@@ -19,14 +19,17 @@ energetischer Verwertung von Ammoniak.
 
 > **Status:** Frühes Entwicklungsstadium (Work in Progress). API und Struktur können sich noch ändern.
 
-Dadurch bekommt das Projekt von Anfang an eine klare Trennung:
+## Einzuhalten
 
-core → allgemeine Infrastruktur.
-state → thermodynamische Zustände.
-components → physikalische Bauteile.
-simulation → Orchestrierung.
-reporting → Berichte.
+- [PEP 8](https://peps.python.org/pep-0008/) – Style Guide for Python Code
 
+Beispiele:
+
+Jede Datei enthält genau eine öffentliche Klasse.
+Keine Datei wird länger als etwa 300 Zeilen. Wenn sie darüber wächst, ist das ein Signal, sie aufzuteilen.
+Jede öffentliche Methode erhält einen Docstring im NumPy-Stil.
+Alle Klassen bekommen von Anfang an Typannotationen und werden mit mypy --strict getestet.
+Alle Unit-Tests spiegeln die Paketstruktur wider (tests/unit/components/test_component.py usw.).
 
 ## Projektstruktur
 
