@@ -22,11 +22,15 @@ dependencies = []
 dev = [
     "pytest>=8",
     "pytest-cov",
+    "pytest-xdist",
     "ruff",
     "mypy",
     "jinja2",
-    "coolprop"
+    "coolprop",
+    "pre-commit",
+    "build",
 ]
+
 
 [tool.pytest.ini_options]
 
