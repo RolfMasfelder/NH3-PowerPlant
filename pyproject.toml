@@ -1,0 +1,41 @@
+[build-system]
+requires = ["setuptools>=80", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "nh3powerplant"
+version = "0.1.0"
+description = "Simulation framework for coupled thermodynamic cycles"
+readme = "README.md"
+requires-python = ">=3.13"
+
+authors = [
+    {name = "Rolf Masfelder"}
+]
+
+license = {text = "MIT"}
+
+dependencies = []
+
+[project.optional-dependencies]
+
+dev = [
+    "pytest>=8",
+    "pytest-cov",
+    "ruff",
+    "mypy",
+    "jinja2",
+    "coolprop"
+]
+
+[tool.pytest.ini_options]
+
+testpaths = ["tests"]
+
+pythonpath = ["src"]
+
+addopts = [
+    "--cov=nh3powerplant",
+    "--cov-report=term-missing",
+    "--cov-report=html"
+]
