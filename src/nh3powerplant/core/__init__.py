@@ -14,6 +14,7 @@ from .exceptions import (
 from .identifiable import Identifiable
 from .identifier import Identifier
 from .registry import Registry
+from .provenance import Provenance
 
 __all__ = [
     "ConfigurationError",
@@ -24,4 +25,5 @@ __all__ = [
     "Registry",
     "SimulationError",
     "ValidationError",
+    "Provenance",
 ]
