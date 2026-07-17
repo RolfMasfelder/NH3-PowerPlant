@@ -1,10 +1,14 @@
 # Glossar
 
-**Projekt:** NH3-PowerPlant
+## Dokumentstatus
 
-**Dokument:** 99_Glossar.md
-
-**Version:** automatisch erzeugt
+| Eigenschaft | Wert |
+|-------------|------|
+| Dokument | 99_Glossar.md |
+| Version | automatisch erzeugt |
+| Bearbeitungsstand | automatisch erzeugt |
+| Letzte Änderung | 17.07.2026 |
+| Autor | Projekt NH3-PowerPlant |
 
 ---
 

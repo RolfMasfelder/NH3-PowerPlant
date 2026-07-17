@@ -1,85 +1,144 @@
+"""
+Unit tests for the generic Registry.
+"""
+
+from dataclasses import dataclass
+
 import pytest
 
-from nh3powerplant.core import Identifier
-from nh3powerplant.core import Registry
-from nh3powerplant.core import ValidationError
+from nh3powerplant.core.exceptions import NotFoundError
+from nh3powerplant.core.exceptions import ValidationError
+from nh3powerplant.core.identifier import Identifier
+from nh3powerplant.core.registry import Registry
 
 
-def test_empty() -> None:
+@dataclass(slots=True, frozen=True)
+class DummyObject:
+    """
+    Minimal object implementing the Identifiable protocol.
+    """
 
-    r = Registry[int]()
+    identifier: Identifier
 
-    assert len(r) == 0
-
-
-def test_add() -> None:
-
-    r = Registry[int]()
-
-    i = Identifier("Pump","NH3", "out")
-
-    r.add(i, 42)
-
-    assert len(r) == 1
-
-    assert r.get(i) == 42
+    value: int
 
 
+def test_empty_registry() -> None:
 
-def test_duplicate() -> None:
+    registry: Registry[DummyObject] = Registry()
 
-    r = Registry[int]()
-
-    i = Identifier("Pump","NH3", "out")
-
-    r.add(i, 1)
-
-    with pytest.raises(ValidationError):
-
-        r.add(i, 2)
+    assert len(registry) == 0
 
 
-def test_remove() -> None:
+def test_add_object() -> None:
 
-    r = Registry[int]()
+    registry: Registry[DummyObject] = Registry()
 
-    i = Identifier("Pump","NH3", "out")
+    obj = DummyObject(
+        identifier=Identifier("Pump", "NH3", "out"),
+        value=42,
+    )
 
-    r.add(i, 10)
+    registry.add(obj)
 
-    r.remove(i)
+    assert len(registry) == 1
 
-    assert len(r) == 0
+    assert registry.get(obj.identifier) is obj
 
 
 def test_contains() -> None:
 
-    r = Registry[int]()
+    registry: Registry[DummyObject] = Registry()
 
-    i = Identifier("Pump","NH3", "out")
+    obj = DummyObject(
+        Identifier("Pump", "NH3", "out"),
+        1,
+    )
 
-    r.add(i, 1)
+    registry.add(obj)
 
-    assert i in r
+    assert obj.identifier in registry
 
 
-def test_iteration() -> None:
+def test_duplicate_identifier() -> None:
 
-    r = Registry[int]()
+    registry: Registry[DummyObject] = Registry()
 
-    r.add(Identifier("A","NH3", "out"), 1)
+    identifier = Identifier("Pump", "NH3", "out")
 
-    r.add(Identifier("B","NH3", "out"), 2)
+    registry.add(DummyObject(identifier, 1))
 
-    assert sum(r) == 3
+    with pytest.raises(ValidationError):
+        registry.add(DummyObject(identifier, 2))
+
+
+def test_remove() -> None:
+
+    registry: Registry[DummyObject] = Registry()
+
+    obj = DummyObject(
+        Identifier("Pump", "NH3", "out"),
+        5,
+    )
+
+    registry.add(obj)
+
+    registry.remove(obj.identifier)
+
+    assert len(registry) == 0
+
+
+def test_unknown_identifier() -> None:
+
+    registry: Registry[DummyObject] = Registry()
+
+    with pytest.raises(NotFoundError):
+        registry.get(
+            Identifier("Unknown", "NH3", "out")
+        )
 
 
 def test_clear() -> None:
 
-    r = Registry[int]()
+    registry: Registry[DummyObject] = Registry()
 
-    r.add(Identifier("A","NH3", "out"), 1)
+    registry.add(
+        DummyObject(
+            Identifier("A", "NH3", "out"),
+            1,
+        )
+    )
 
-    r.clear()
+    registry.add(
+        DummyObject(
+            Identifier("B", "NH3", "out"),
+            2,
+        )
+    )
 
-    assert len(r) == 0
+    registry.clear()
+
+    assert len(registry) == 0
+
+
+def test_iteration() -> None:
+
+    registry: Registry[DummyObject] = Registry()
+
+    registry.add(
+        DummyObject(
+            Identifier("A", "NH3", "out"),
+            1,
+        )
+    )
+
+    registry.add(
+        DummyObject(
+            Identifier("B", "NH3", "out"),
+            2,
+        )
+    )
+
+    values = sorted(obj.value for obj in registry)
+
+    assert values == [1, 2]

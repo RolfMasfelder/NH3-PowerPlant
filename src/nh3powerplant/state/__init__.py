@@ -1,7 +1,9 @@
-from .phase import Phase
+"""
+Thermodynamic state definitions.
+"""
+
 from .statepoint import StatePoint
 
 __all__ = [
-    "Phase",
     "StatePoint",
 ]

@@ -1,43 +1,50 @@
-from nh3powerplant.state import Phase
-from nh3powerplant.state import StatePoint
+"""
+Unit tests for StatePoint.
+"""
+
+from nh3powerplant.core.identifier import Identifier
+from nh3powerplant.state.statepoint import StatePoint
 
 
-def test_empty_state() -> None:
+def test_create_statepoint() -> None:
 
-    s = StatePoint("S1")
+    state = StatePoint(
 
-    assert s.name == "S1"
+        identifier=Identifier(
+            "Pump",
+            "NH3",
+            "out",
+        )
 
-    assert s.phase == Phase.UNKNOWN
+    )
 
-    assert not s.is_complete()
+    assert state.identifier.component == "Pump"
 
+    assert state.pressure is None
 
-def test_complete_state() -> None:
+    assert state.temperature is None
 
-    s = StatePoint("S1")
+    assert state.enthalpy is None
 
-    s.temperature = 300
-
-    s.pressure = 101325
-
-    s.enthalpy = 120000
-
-    s.entropy = 450
-
-    assert s.is_complete()
+    assert state.entropy is None
 
 
-def test_serialization() -> None:
+def test_modify_statepoint() -> None:
 
-    s = StatePoint("A")
+    state = StatePoint(
 
-    s.temperature = 300
+        Identifier(
+            "Pump",
+            "NH3",
+            "out",
+        )
 
-    d = s.to_dict()
+    )
 
-    s2 = StatePoint.from_dict(d)
+    state.pressure = 12e5
 
-    assert s2.name == "A"
+    state.temperature = 95.0
 
-    assert s2.temperature == 300
+    assert state.pressure == 12e5
+
+    assert state.temperature == 95.0

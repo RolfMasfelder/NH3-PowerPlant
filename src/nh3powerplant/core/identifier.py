@@ -10,20 +10,28 @@ from dataclasses import dataclass
 @dataclass(slots=True, frozen=True, order=True)
 class Identifier:
     """
-    Identifier consisting of
+    Unique identifier of a simulation object.
 
-    component.circuit.port
+    Parameters
+    ----------
+    component
+        Name of the component.
+    circuit
+        Name of the thermodynamic circuit.
+    port
+        Port name.
 
-    Example
-    -------
+    Examples
+    --------
+    HeatPump.NH3.in
 
-    HeatPump.main.out
-    Turbine.main.in
-    Condenser.coolingWater.in
+    Turbine.NH3.out
     """
 
     component: str
+
     circuit: str
+
     port: str
 
     def __post_init__(self) -> None:

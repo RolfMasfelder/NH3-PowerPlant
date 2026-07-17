@@ -1,10 +1,14 @@
 # Ausblick
 
-**Projekt:** NH3-PowerPlant
+## Dokumentstatus
 
-**Dokument:** 10_Ausblick.md
-
-**Version:** Work in Progress
+| Eigenschaft | Wert |
+|-------------|------|
+| Dokument | 10_Ausblick.md |
+| Version | Work in Progress |
+| Bearbeitungsstand | Work in Progress |
+| Letzte Änderung | 17.07.2026 |
+| Autor | Projekt NH3-PowerPlant |
 
 ---
 
