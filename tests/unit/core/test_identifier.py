@@ -1,17 +1,17 @@
 from nh3powerplant.core import Identifier
 
 
-def test_identifier():
+def test_identifier() -> None:
 
-    i = Identifier("Pump", "out")
+    i = Identifier("Pump", "NH3", "out")
 
-    assert str(i) == "Pump.out"
+    assert str(i) == "Pump.NH3.out"
 
 
-def test_compare():
+def test_compare() -> None:
 
-    a = Identifier("A", "out")
+    a = Identifier("A", "NH3", "out")
 
-    b = Identifier("B", "out")
+    b = Identifier("B", "NH3", "out")
 
     assert a < b

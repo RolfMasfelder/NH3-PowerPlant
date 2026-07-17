@@ -12,18 +12,18 @@ class Identifier:
     """
     Identifier consisting of
 
-    component.port
+    component.circuit.port
 
     Example
     -------
 
-    HeatPump.out
-    Turbine.in
-    Condenser.coolingWater
+    HeatPump.main.out
+    Turbine.main.in
+    Condenser.coolingWater.in
     """
 
     component: str
-
+    circuit: str
     port: str
 
     def __post_init__(self) -> None:
@@ -31,9 +31,12 @@ class Identifier:
         if not self.component.strip():
             raise ValueError("component must not be empty")
 
+        if not self.circuit.strip():
+            raise ValueError("circuit must not be empty")
+
         if not self.port.strip():
             raise ValueError("port must not be empty")
 
     def __str__(self) -> str:
 
-        return f"{self.component}.{self.port}"
+        return f"{self.component}.{self.circuit}.{self.port}"

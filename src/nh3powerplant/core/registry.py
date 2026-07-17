@@ -27,21 +27,26 @@ class Registry(Generic[T]):
 
         self._objects: dict[Identifier, T] = {}
 
+
     def __len__(self) -> int:
 
         return len(self._objects)
+
 
     def __contains__(self, identifier: Identifier) -> bool:
 
         return identifier in self._objects
 
+
     def __iter__(self) -> Iterator[T]:
 
         return iter(self._objects.values())
 
+
     def identifiers(self) -> Iterator[Identifier]:
 
         return iter(self._objects.keys())
+
 
     def add(
         self,
@@ -56,6 +61,7 @@ class Registry(Generic[T]):
 
         self._objects[identifier] = obj
 
+
     def get(
         self,
         identifier: Identifier,
@@ -68,6 +74,7 @@ class Registry(Generic[T]):
             raise ValidationError(
                 f"Unknown identifier '{identifier}'."
             ) from exc
+
 
     def remove(
         self,
@@ -82,19 +89,23 @@ class Registry(Generic[T]):
                 f"Unknown identifier '{identifier}'."
             ) from exc
 
+
     def clear(self) -> None:
 
         self._objects.clear()
 
-    def values(self):
 
-        return self._objects.values()
+    def values(self) -> Iterator[T]:
 
-    def items(self):
+        return iter(self._objects.values())
 
-        return self._objects.items()
 
-    def to_dict(self):
+    def items(self) -> Iterator[tuple[Identifier, T]]:
+
+        return iter(self._objects.items())
+
+
+    def to_dict(self) -> dict[str, T]:
 
         return {
             str(identifier): obj
