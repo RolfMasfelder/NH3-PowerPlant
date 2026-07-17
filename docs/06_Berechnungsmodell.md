@@ -1,10 +1,14 @@
 # Berechnungsmodell
 
-**Projekt:** NH3-PowerPlant
+## Dokumentstatus
 
-**Dokument:** 06_Berechnungsmodell.md
-
-**Version:** 0.1 (Entwurf)
+| Eigenschaft | Wert |
+|-------------|------|
+| Dokument | 06_Berechnungsmodell.md |
+| Version | 0.1 (Entwurf) |
+| Bearbeitungsstand | Entwurf |
+| Letzte Änderung | 17.07.2026 |
+| Autor | Projekt NH3-PowerPlant |
 
 ---
 
