@@ -50,3 +50,6 @@ results/
 
 # gefundene Dokumente
 dissertation_prof_dr_kail.pdf
+
+# dont version control the following files
+docs/Übersicht.md
