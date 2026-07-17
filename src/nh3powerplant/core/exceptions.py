@@ -5,17 +5,29 @@ Project specific exceptions.
 
 class NH3PowerPlantError(Exception):
     """
-    Base exception.
+    Base class for all project specific exceptions.
     """
 
 
 class ConfigurationError(NH3PowerPlantError):
-    pass
+    """
+    Raised for configuration errors.
+    """
 
 
 class ValidationError(NH3PowerPlantError):
-    pass
+    """
+    Raised if input data are invalid.
+    """
+
+
+class NotFoundError(NH3PowerPlantError):
+    """
+    Raised if a requested object cannot be found.
+    """
 
 
 class SimulationError(NH3PowerPlantError):
-    pass
+    """
+    Raised if a simulation cannot be completed.
+    """
