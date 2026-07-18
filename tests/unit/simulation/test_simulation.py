@@ -16,6 +16,9 @@ class DummyComponent(Component):
     def calculate(self) -> None:
         pass
 
+    def execute(self) -> None:
+        pass
+
 
 def test_create_simulation() -> None:
     """

@@ -8,7 +8,11 @@ from nh3powerplant.core.identifier import Identifier
 
 class DummyComponent(Component):
 
+
     def calculate(self) -> None:
+        pass
+
+    def execute(self) -> None:
         pass
 
 
