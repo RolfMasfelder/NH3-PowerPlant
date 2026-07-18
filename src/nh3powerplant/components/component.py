@@ -47,3 +47,10 @@ class Component(ABC):
         Perform the component calculation.
         """
         raise NotImplementedError
+
+    @abstractmethod
+    def execute(self) -> None:
+        """
+        Execute the component.
+        """
+        raise NotImplementedError
