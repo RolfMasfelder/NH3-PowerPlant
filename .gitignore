@@ -38,7 +38,7 @@ data/*
 !data/.gitkeep
 
 # results werden nicht in git versioniert, da sie jederzeit eindeutig reproduziert werden können
-results/
+/results/
 
 # Anlegen und auch leer in git versionieren, damit der Ordner existiert
 !examples/.gitkeep
