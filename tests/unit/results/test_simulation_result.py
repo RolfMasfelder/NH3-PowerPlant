@@ -43,6 +43,7 @@ def test_simulation_result_to_dict() -> None:
         "configuration",
         "parameters",
         "state_points",
+        "connections",
         "components",
         "balances",
         "efficiencies",

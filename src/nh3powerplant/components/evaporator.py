@@ -1,5 +1,5 @@
 """
-Pump component model.
+Evaporator component model.
 """
 
 from __future__ import annotations
@@ -12,9 +12,9 @@ from nh3powerplant.fluids.fluid import Fluid
 from nh3powerplant.state.statepoint import StatePoint
 
 
-class Pump(Component):
+class Evaporator(Component):
     """
-    Incompressible pump model.
+    Evaporator with a prescribed outlet temperature and vapor quality.
     """
 
     def __init__(
@@ -22,8 +22,8 @@ class Pump(Component):
         identifier: Identifier,
         fluid: Fluid,
         outlet_identifier: Identifier,
-        outlet_pressure: float,
-        isentropic_efficiency: float,
+        outlet_temperature: float,
+        outlet_vapor_quality: float = 1.0,
         inlet_state: StatePoint | None = None,
     ) -> None:
         """
@@ -35,37 +35,30 @@ class Pump(Component):
             Fluid property provider.
         outlet_identifier
             Identifier of the generated outlet state.
-        outlet_pressure
-            Pump outlet pressure in Pa.
-        isentropic_efficiency
-            Pump isentropic efficiency.
+        outlet_temperature
+            Outlet saturation temperature in K.
+        outlet_vapor_quality
+            Outlet vapor quality.
         inlet_state
-            Optional initial thermodynamic state at the pump inlet.
+            Optional initial thermodynamic state at the evaporator inlet.
         """
         super().__init__(identifier)
-
-        if outlet_pressure <= 0.0:
-            raise ValidationError("outlet pressure must be positive")
-
-        if not 0.0 < isentropic_efficiency <= 1.0:
-            raise ValidationError("isentropic efficiency must be in (0, 1]")
-
         self._fluid = fluid
         self._inlet_state = inlet_state
         self._outlet_identifier = outlet_identifier
-        self._outlet_pressure = outlet_pressure
-        self._isentropic_efficiency = isentropic_efficiency
+        self._outlet_temperature = outlet_temperature
+        self._outlet_vapor_quality = outlet_vapor_quality
         self._inlet_port = Port(
             identifier=Identifier(identifier.component, identifier.circuit, "in"),
-            description="Pump inlet",
+            description="Evaporator inlet",
             state=inlet_state,
         )
         self._outlet_port = Port(
             identifier=outlet_identifier,
-            description="Pump outlet",
+            description="Evaporator outlet",
         )
         self._outlet_state: StatePoint | None = None
-        self._power: float | None = None
+        self._heat_flow: float | None = None
 
     @property
     def inlet_port(self) -> Port:
@@ -89,47 +82,42 @@ class Pump(Component):
         return self._outlet_state
 
     @property
-    def power(self) -> float | None:
+    def heat_flow(self) -> float | None:
         """
-        Return the pump shaft power in W.
+        Return the heat flow into the working fluid in W.
         """
-        return self._power
+        return self._heat_flow
 
     def calculate(self) -> None:
         """
-        Calculate outlet state and pump power.
+        Calculate outlet state and heat flow.
         """
         inlet_state = self._required_state(self._inlet_port.state)
-        inlet_pressure = self._required("pressure", inlet_state.pressure)
         inlet_enthalpy = self._required("enthalpy", inlet_state.enthalpy)
-        inlet_density = self._required("density", inlet_state.density)
         mass_flow = self._required("mass_flow", inlet_state.mass_flow)
 
-        if self._outlet_pressure <= inlet_pressure:
-            raise ValidationError("outlet pressure must exceed inlet pressure")
-
-        pressure_increase = self._outlet_pressure - inlet_pressure
-        specific_work = pressure_increase / inlet_density / self._isentropic_efficiency
-        outlet_enthalpy = inlet_enthalpy + specific_work
-
-        self._outlet_state = self._fluid.state_from_pressure_enthalpy(
+        self._outlet_state = self._fluid.state_from_temperature_quality(
             identifier=self._outlet_identifier,
-            pressure=self._outlet_pressure,
-            enthalpy=outlet_enthalpy,
+            temperature=self._outlet_temperature,
+            vapor_quality=self._outlet_vapor_quality,
             mass_flow=mass_flow,
         )
         self._outlet_port.state = self._outlet_state
-        self._power = mass_flow * specific_work
+        outlet_enthalpy = self._required("outlet enthalpy", self._outlet_state.enthalpy)
+        self._heat_flow = mass_flow * (outlet_enthalpy - inlet_enthalpy)
+
+        if self._heat_flow <= 0.0:
+            raise ValidationError("evaporator heat flow must be positive")
 
     def execute(self) -> None:
         """
-        Execute the pump calculation.
+        Execute the evaporator calculation.
         """
         self.calculate()
 
     def _required(self, name: str, value: float | None) -> float:
         if value is None:
-            raise ValidationError(f"inlet state requires {name}")
+            raise ValidationError(f"state requires {name}")
 
         return value
 

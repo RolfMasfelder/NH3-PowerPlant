@@ -87,6 +87,17 @@ class Simulation:
         """
         self._connections.add(connection)
 
+    def calculate(self) -> None:
+        """
+        Calculate all components once and transfer states along connections.
+        """
+        for component in self._components:
+            component.calculate()
+
+            for connection in self._outgoing_connections(component):
+                state = connection.transfer()
+                self._set_state(state)
+
     def number_of_components(self) -> int:
         """
         Return the number of registered components.
@@ -112,3 +123,17 @@ class Simulation:
         self._components.clear()
         self._connections.clear()
         self._states.clear()
+
+    def _outgoing_connections(self, component: Component) -> list[Connection]:
+        return [
+            connection
+            for connection in self._connections
+            if connection.source.identifier.component == component.identifier.component
+            and connection.source.identifier.circuit == component.identifier.circuit
+        ]
+
+    def _set_state(self, state: StatePoint) -> None:
+        if state.identifier in self._states:
+            self._states.remove(state.identifier)
+
+        self._states.add(state)

@@ -50,6 +50,7 @@ SimulationResult
 ├── configuration
 ├── parameters
 ├── state_points
+├── connections
 ├── components
 ├── balances
 ├── efficiencies
@@ -147,7 +148,24 @@ Berichte dürfen Werte in technisch üblichen Einheiten darstellen, müssen dies
 
 ---
 
-## 8 Komponenten
+## 8 Connections
+
+Der Bereich `connections` enthält die Verbindungen zwischen Komponentenports.
+
+Jede Connection besitzt mindestens:
+
+| Feld | Bedeutung |
+|------|-----------|
+| identifier | eindeutige Kennung der Verbindung |
+| source | Quellport der Verbindung |
+| destination | Zielport der Verbindung |
+| state | referenzierter thermodynamischer Zustand |
+
+Connections beschreiben die Topologie des Anlagenmodells. Die referenzierten StatePoints enthalten die thermodynamischen Zustandsgrößen.
+
+---
+
+## 9 Komponenten
 
 Der Bereich `components` enthält die Ergebnisse einzelner Anlagenkomponenten.
 
@@ -157,6 +175,8 @@ Jede Komponente besitzt mindestens:
 |------|-----------|
 | identifier | eindeutige Kennung |
 | type | Komponententyp |
+| input_ports | referenzierte Eingangsports |
+| output_ports | referenzierte Ausgangsports |
 | input_states | referenzierte Eingangszustände |
 | output_states | referenzierte Ausgangszustände |
 | heat_flow | Wärmestrom |
@@ -168,7 +188,7 @@ Komponentenspezifische Kennwerte können zusätzlich ergänzt werden.
 
 ---
 
-## 9 Bilanzen
+## 10 Bilanzen
 
 Der Bereich `balances` enthält Energie-, Massen- und Exergiebilanzen.
 
@@ -188,7 +208,7 @@ Diese Daten bilden die Grundlage der Konsistenzprüfung.
 
 ---
 
-## 10 Wirkungsgrade
+## 11 Wirkungsgrade
 
 Der Bereich `efficiencies` enthält abgeleitete Bewertungsgrößen.
 
@@ -206,7 +226,7 @@ Jeder Eintrag enthält Name, Wert, Einheit und Bezugsgröße.
 
 ---
 
-## 11 Validierung
+## 12 Validierung
 
 Der Bereich `validation` enthält alle Prüfungen eines Simulationslaufs.
 
