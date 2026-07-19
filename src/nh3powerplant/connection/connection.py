@@ -4,12 +4,16 @@ Connection between two simulation components.
 
 from __future__ import annotations
 
+import logging
 from dataclasses import dataclass
 
 from nh3powerplant.core.exceptions import ValidationError
 from nh3powerplant.core.identifier import Identifier
 from nh3powerplant.core.port import Port
 from nh3powerplant.state.statepoint import StatePoint
+
+
+logger = logging.getLogger(__name__)
 
 
 @dataclass(slots=True)
@@ -59,5 +63,13 @@ class Connection:
 
         if self.state is None:
             raise ValidationError("connection requires a state")
+
+        logger.debug(
+            "Connection transfer: %s, %s -> %s, state=%s",
+            self.identifier,
+            self.source.identifier,
+            self.destination.identifier,
+            self.state.identifier,
+        )
 
         return self.state

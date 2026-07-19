@@ -4,9 +4,14 @@ Generator component model.
 
 from __future__ import annotations
 
+import logging
+
 from nh3powerplant.components.component import Component
 from nh3powerplant.core.exceptions import ValidationError
 from nh3powerplant.core.identifier import Identifier
+
+
+logger = logging.getLogger(__name__)
 
 
 class Generator(Component):
@@ -54,6 +59,13 @@ class Generator(Component):
         Calculate electrical output power.
         """
         self._electrical_power = self._mechanical_power * self._efficiency
+        logger.debug(
+            "Generator output: id=%s, mechanical_power_W=%.6f, efficiency=%.6f, electrical_power_W=%.6f",
+            self.identifier,
+            self._mechanical_power,
+            self._efficiency,
+            self._electrical_power,
+        )
 
     def execute(self) -> None:
         """

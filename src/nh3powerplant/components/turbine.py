@@ -4,12 +4,17 @@ Turbine component model.
 
 from __future__ import annotations
 
+import logging
+
 from nh3powerplant.components.component import Component
 from nh3powerplant.core.exceptions import ValidationError
 from nh3powerplant.core.identifier import Identifier
 from nh3powerplant.core.port import Port
 from nh3powerplant.fluids.fluid import Fluid
 from nh3powerplant.state.statepoint import StatePoint
+
+
+logger = logging.getLogger(__name__)
 
 
 class Turbine(Component):
@@ -104,6 +109,18 @@ class Turbine(Component):
         inlet_enthalpy = self._required("enthalpy", inlet_state.enthalpy)
         inlet_entropy = self._required("entropy", inlet_state.entropy)
         mass_flow = self._required("mass_flow", inlet_state.mass_flow)
+        logger.debug(
+            "Turbine input: id=%s, inlet_state=%s, p_in_Pa=%.6f, h_in_J_per_kg=%.6f, "
+            "s_in_J_per_kgK=%.6f, mass_flow_kg_per_s=%.9f, p_out_Pa=%.6f, eta=%.6f",
+            self.identifier,
+            inlet_state.identifier,
+            inlet_pressure,
+            inlet_enthalpy,
+            inlet_entropy,
+            mass_flow,
+            self._outlet_pressure,
+            self._isentropic_efficiency,
+        )
 
         if self._outlet_pressure >= inlet_pressure:
             raise ValidationError("outlet pressure must be below inlet pressure")
@@ -131,6 +148,15 @@ class Turbine(Component):
         )
         self._outlet_port.state = self._outlet_state
         self._power = mass_flow * specific_work
+        logger.debug(
+            "Turbine output: id=%s, outlet_state=%s, h_isentropic_out_J_per_kg=%.6f, "
+            "specific_work_J_per_kg=%.6f, power_W=%.6f",
+            self.identifier,
+            self._outlet_state.identifier,
+            isentropic_enthalpy,
+            specific_work,
+            self._power,
+        )
 
     def execute(self) -> None:
         """

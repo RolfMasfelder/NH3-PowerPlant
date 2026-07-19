@@ -4,6 +4,7 @@ Minimal NH3 reference cycle example.
 
 from __future__ import annotations
 
+import logging
 from pathlib import Path
 from typing import Any
 
@@ -32,23 +33,58 @@ GENERATOR_EFFICIENCY = 0.96
 HEAT_PUMP_COP = 3.0
 TARGET_ELECTRICAL_POWER = 100_000.0
 OUTPUT_PATH = Path("results/reference_cycle/result.json")
+LOG_PATH = Path("results/reference_cycle/reference_cycle.log")
+PUMP_POWER_NAME = "pump power"
+TURBINE_POWER_NAME = "turbine power"
+EVAPORATOR_HEAT_NAME = "evaporator heat"
+CONDENSER_HEAT_NAME = "condenser heat"
+GENERATOR_ELECTRICAL_POWER_NAME = "generator electrical power"
+
+logger = logging.getLogger(__name__)
 
 
 def main() -> None:
     """
     Run the reference cycle and write the result JSON file.
     """
+    configure_logging(LOG_PATH)
+    logger.info("Starting reference cycle example")
     result = run_reference_cycle()
     JsonResultIO().write(result, OUTPUT_PATH)
+    logger.info("Wrote result JSON to %s", OUTPUT_PATH)
     print(f"Wrote {OUTPUT_PATH}")
+    print(f"Wrote {LOG_PATH}")
     print(f"gross electrical power: {result.components[-1]['electrical_power']:.2f} W")
     print(f"net electrical power: {result.efficiencies[0]['value']:.2f} W")
+
+
+def configure_logging(path: Path) -> None:
+    """
+    Configure file logging for the reference cycle example.
+    """
+    path.parent.mkdir(parents=True, exist_ok=True)
+
+    handler = logging.FileHandler(path, mode="w", encoding="utf-8")
+    handler.setLevel(logging.DEBUG)
+    handler.setFormatter(
+        logging.Formatter(
+            fmt="%(asctime)s %(levelname)s %(name)s: %(message)s",
+            datefmt="%Y-%m-%d %H:%M:%S",
+        )
+    )
+
+    for configured_logger in (logger, logging.getLogger("nh3powerplant")):
+        configured_logger.handlers.clear()
+        configured_logger.setLevel(logging.DEBUG)
+        configured_logger.propagate = False
+        configured_logger.addHandler(handler)
 
 
 def run_reference_cycle() -> SimulationResult:
     """
     Calculate a simple saturated NH3 reference cycle.
     """
+    logger.info("Running unit cycle for mass-flow scaling")
     unit_cycle = _calculate_cycle(mass_flow=1.0)
     unit_generator_power = _required_float(
         "unit generator electrical power",
@@ -59,7 +95,15 @@ def run_reference_cycle() -> SimulationResult:
         unit_generator_power=unit_generator_power,
         mass_flow=mass_flow,
     )
+    logger.info(
+        "Scaled mass flow from unit run: unit_generator_power_W=%.6f, "
+        "target_power_W=%.6f, mass_flow_kg_per_s=%.9f",
+        unit_generator_power,
+        TARGET_ELECTRICAL_POWER,
+        mass_flow,
+    )
 
+    logger.info("Running scaled reference cycle")
     cycle = _calculate_cycle(mass_flow=mass_flow)
 
     pump = cycle["pump"]
@@ -69,13 +113,28 @@ def run_reference_cycle() -> SimulationResult:
     generator = cycle["generator"]
     simulation = cycle["simulation"]
 
-    pump_power = _required_float("pump power", pump.power)
-    turbine_power = _required_float("turbine power", turbine.power)
-    evaporator_heat = _required_float("evaporator heat", evaporator.heat_flow)
-    condenser_heat = _required_float("condenser heat", condenser.heat_flow)
-    generator_power = _required_float("generator electrical power", generator.electrical_power)
+    pump_power = _required_float(PUMP_POWER_NAME, pump.power)
+    turbine_power = _required_float(TURBINE_POWER_NAME, turbine.power)
+    evaporator_heat = _required_float(EVAPORATOR_HEAT_NAME, evaporator.heat_flow)
+    condenser_heat = _required_float(CONDENSER_HEAT_NAME, condenser.heat_flow)
+    generator_power = _required_float(
+        GENERATOR_ELECTRICAL_POWER_NAME,
+        generator.electrical_power,
+    )
     heat_pump_power = evaporator_heat / HEAT_PUMP_COP
     net_power = generator_power - pump_power - heat_pump_power
+    logger.info(
+        "Final powers: pump_W=%.6f, turbine_W=%.6f, generator_W=%.6f, "
+        "evaporator_heat_W=%.6f, condenser_heat_W=%.6f, "
+        "heat_pump_power_W=%.6f, net_power_W=%.6f",
+        pump_power,
+        turbine_power,
+        generator_power,
+        evaporator_heat,
+        condenser_heat,
+        heat_pump_power,
+        net_power,
+    )
 
     return SimulationResult(
         run=RunInfo.create(
@@ -196,16 +255,26 @@ def _calculate_cycle(mass_flow: float) -> dict[str, Any]:
     """
     Build and calculate the material cycle for one prescribed mass flow.
     """
+    logger.debug("Calculating cycle for mass_flow_kg_per_s=%.9f", mass_flow)
     cycle = _build_cycle(mass_flow)
+    _log_cycle_inputs(cycle)
     cycle["simulation"].calculate()
+    _log_cycle_outputs(cycle)
 
     generator = Generator(
         identifier=Identifier("Generator", "shaft", "body"),
-        mechanical_power=_required_float("turbine power", cycle["turbine"].power),
+        mechanical_power=_required_float(TURBINE_POWER_NAME, cycle["turbine"].power),
         efficiency=GENERATOR_EFFICIENCY,
     )
     generator.calculate()
     cycle["generator"] = generator
+    logger.debug(
+        "Generator calculated: mechanical_power_W=%.6f, efficiency=%.6f, "
+        "electrical_power_W=%.6f",
+        _required_float(TURBINE_POWER_NAME, cycle["turbine"].power),
+        GENERATOR_EFFICIENCY,
+        _required_float(GENERATOR_ELECTRICAL_POWER_NAME, generator.electrical_power),
+    )
 
     return cycle
 
@@ -227,6 +296,7 @@ def _scaling_trace(unit_generator_power: float, mass_flow: float) -> dict[str, f
 
 
 def _build_cycle(mass_flow: float) -> dict[str, Any]:
+    logger.debug("Building cycle objects for mass_flow_kg_per_s=%.9f", mass_flow)
     fluid = CoolPropFluid("NH3")
     simulation = Simulation("Minimal NH3 reference cycle")
 
@@ -246,6 +316,12 @@ def _build_cycle(mass_flow: float) -> dict[str, Any]:
         "evaporation pressure",
         evaporator_out_reference.pressure,
     )
+    logger.debug(
+        "Reference pressures: evaporation_pressure_Pa=%.6f, condensation_pressure_Pa=%.6f",
+        evaporation_pressure,
+        _required_float("condensation pressure", condenser_out.pressure),
+    )
+    _log_state("initial condenser outlet", condenser_out)
 
     pump = Pump(
         identifier=Identifier("Pump", "NH3", "body"),
@@ -313,6 +389,12 @@ def _build_cycle(mass_flow: float) -> dict[str, Any]:
         )
     )
     simulation.add_state(condenser_out)
+    logger.debug(
+        "Cycle topology built: components=%d, connections=%d, states=%d",
+        simulation.number_of_components(),
+        simulation.number_of_connections(),
+        simulation.number_of_states(),
+    )
 
     return {
         "pump": pump,
@@ -328,6 +410,70 @@ def _required_float(name: str, value: float | None) -> float:
         raise SimulationError(f"Missing {name}.")
 
     return value
+
+
+def _log_cycle_inputs(cycle: dict[str, Any]) -> None:
+    logger.debug("Cycle input ports before Simulation.calculate()")
+    for component_name in ("pump", "evaporator", "turbine", "condenser"):
+        component = cycle[component_name]
+        _log_port_state(f"{component_name}.inlet", component.inlet_port.state)
+
+
+def _log_cycle_outputs(cycle: dict[str, Any]) -> None:
+    logger.debug("Cycle ports after Simulation.calculate()")
+    for component_name in ("pump", "evaporator", "turbine", "condenser"):
+        component = cycle[component_name]
+        _log_port_state(f"{component_name}.inlet", component.inlet_port.state)
+        _log_port_state(f"{component_name}.outlet", component.outlet_port.state)
+
+    logger.debug(
+        "Component results: pump_power_W=%.6f, evaporator_heat_W=%.6f, "
+        "turbine_power_W=%.6f, condenser_heat_W=%.6f",
+        _required_float(PUMP_POWER_NAME, cycle["pump"].power),
+        _required_float(EVAPORATOR_HEAT_NAME, cycle["evaporator"].heat_flow),
+        _required_float(TURBINE_POWER_NAME, cycle["turbine"].power),
+        _required_float(CONDENSER_HEAT_NAME, cycle["condenser"].heat_flow),
+    )
+
+    for connection in cycle["simulation"].connections.values():
+        logger.debug(
+            "Connection %s: %s -> %s, state=%s",
+            connection.identifier,
+            connection.source.identifier,
+            connection.destination.identifier,
+            _state_identifier(connection.state) if connection.state is not None else None,
+        )
+
+
+def _log_port_state(label: str, state: StatePoint | None) -> None:
+    if state is None:
+        logger.debug("State %-24s: <empty>", label)
+        return
+
+    _log_state(label, state)
+
+
+def _log_state(label: str, state: StatePoint) -> None:
+    logger.debug(
+        "State %-24s: id=%s, p_Pa=%s, T_K=%s, h_J_per_kg=%s, "
+        "s_J_per_kgK=%s, rho_kg_per_m3=%s, mdot_kg_per_s=%s, vapor_quality=%s",
+        label,
+        state.identifier,
+        _format_optional_float(state.pressure),
+        _format_optional_float(state.temperature),
+        _format_optional_float(state.enthalpy),
+        _format_optional_float(state.entropy),
+        _format_optional_float(state.density),
+        _format_optional_float(state.mass_flow),
+        _format_optional_float(state.vapor_quality),
+    )
+
+
+def _format_optional_float(value: float | None) -> str:
+    if value is None:
+        return "None"
+
+    return f"{value:.9g}"
 
 
 def _state_identifier(state: StatePoint | None) -> str:

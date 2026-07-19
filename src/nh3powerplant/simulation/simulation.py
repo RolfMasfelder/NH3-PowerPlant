@@ -7,10 +7,15 @@ It owns all components and all thermodynamic state points.
 
 from __future__ import annotations
 
+import logging
+
 from nh3powerplant.connection.connection import Connection
 from nh3powerplant.components.component import Component
 from nh3powerplant.core.registry import Registry
 from nh3powerplant.state.statepoint import StatePoint
+
+
+logger = logging.getLogger(__name__)
 
 
 class Simulation:
@@ -91,12 +96,32 @@ class Simulation:
         """
         Calculate all components once and transfer states along connections.
         """
+        logger.debug(
+            "Simulation.calculate start: name=%s, components=%d, connections=%d, states=%d",
+            self._name,
+            len(self._components),
+            len(self._connections),
+            len(self._states),
+        )
+
         for component in self._components:
+            logger.debug("Calculating component %s", component.identifier)
             component.calculate()
 
             for connection in self._outgoing_connections(component):
                 state = connection.transfer()
                 self._set_state(state)
+                logger.debug(
+                    "Transferred connection %s with state %s",
+                    connection.identifier,
+                    state.identifier,
+                )
+
+        logger.debug(
+            "Simulation.calculate done: name=%s, states=%d",
+            self._name,
+            len(self._states),
+        )
 
     def number_of_components(self) -> int:
         """

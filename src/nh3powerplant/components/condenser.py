@@ -4,12 +4,17 @@ Condenser component model.
 
 from __future__ import annotations
 
+import logging
+
 from nh3powerplant.components.component import Component
 from nh3powerplant.core.exceptions import ValidationError
 from nh3powerplant.core.identifier import Identifier
 from nh3powerplant.core.port import Port
 from nh3powerplant.fluids.fluid import Fluid
 from nh3powerplant.state.statepoint import StatePoint
+
+
+logger = logging.getLogger(__name__)
 
 
 class Condenser(Component):
@@ -95,6 +100,16 @@ class Condenser(Component):
         inlet_state = self._required_state(self._inlet_port.state)
         inlet_enthalpy = self._required("enthalpy", inlet_state.enthalpy)
         mass_flow = self._required("mass_flow", inlet_state.mass_flow)
+        logger.debug(
+            "Condenser input: id=%s, inlet_state=%s, h_in_J_per_kg=%.6f, "
+            "mass_flow_kg_per_s=%.9f, T_out_K=%.6f, x_out=%.6f",
+            self.identifier,
+            inlet_state.identifier,
+            inlet_enthalpy,
+            mass_flow,
+            self._outlet_temperature,
+            self._outlet_vapor_quality,
+        )
 
         self._outlet_state = self._fluid.state_from_temperature_quality(
             identifier=self._outlet_identifier,
@@ -108,6 +123,14 @@ class Condenser(Component):
 
         if self._heat_flow <= 0.0:
             raise ValidationError("condenser heat flow must be positive")
+
+        logger.debug(
+            "Condenser output: id=%s, outlet_state=%s, h_out_J_per_kg=%.6f, heat_flow_W=%.6f",
+            self.identifier,
+            self._outlet_state.identifier,
+            outlet_enthalpy,
+            self._heat_flow,
+        )
 
     def execute(self) -> None:
         """
