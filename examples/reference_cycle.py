@@ -4,6 +4,7 @@ Minimal NH3 reference cycle example.
 
 from __future__ import annotations
 
+import argparse
 import logging
 from pathlib import Path
 from typing import Any
@@ -27,6 +28,7 @@ from nh3powerplant.state.statepoint import StatePoint
 
 EVAPORATION_TEMPERATURE = 353.15
 CONDENSATION_TEMPERATURE = 293.15
+COLD_RESERVOIR_TEMPERATURE = 281.15
 PUMP_EFFICIENCY = 0.75
 TURBINE_EFFICIENCY = 0.82
 GENERATOR_EFFICIENCY = 0.96
@@ -39,6 +41,8 @@ TURBINE_POWER_NAME = "turbine power"
 EVAPORATOR_HEAT_NAME = "evaporator heat"
 CONDENSER_HEAT_NAME = "condenser heat"
 GENERATOR_ELECTRICAL_POWER_NAME = "generator electrical power"
+HEAT_PUMP_POWER_NAME = "heat pump power"
+COLD_RESERVOIR_HEAT_NAME = "cold reservoir heat"
 
 logger = logging.getLogger(__name__)
 
@@ -47,15 +51,31 @@ def main() -> None:
     """
     Run the reference cycle and write the result JSON file.
     """
+    args = _parse_args()
     configure_logging(LOG_PATH)
     logger.info("Starting reference cycle example")
-    result = run_reference_cycle()
+    result = run_reference_cycle(heat_pump_cop=args.heat_pump_cop)
     JsonResultIO().write(result, OUTPUT_PATH)
     logger.info("Wrote result JSON to %s", OUTPUT_PATH)
     print(f"Wrote {OUTPUT_PATH}")
     print(f"Wrote {LOG_PATH}")
+    print(f"heat pump COP: {args.heat_pump_cop:.2f}")
     print(f"gross electrical power: {result.components[-1]['electrical_power']:.2f} W")
     print(f"net electrical power: {result.efficiencies[0]['value']:.2f} W")
+
+
+def _parse_args() -> argparse.Namespace:
+    parser = argparse.ArgumentParser(description="Run the NH3 reference cycle example.")
+    parser.add_argument(
+        "--heat-pump-cop",
+        type=float,
+        default=HEAT_PUMP_COP,
+        help="Prescribed heating COP of the external heat pump.",
+    )
+    args = parser.parse_args()
+    if args.heat_pump_cop <= 1.0:
+        parser.error("--heat-pump-cop must be greater than 1.0")
+    return args
 
 
 def configure_logging(path: Path) -> None:
@@ -80,10 +100,13 @@ def configure_logging(path: Path) -> None:
         configured_logger.addHandler(handler)
 
 
-def run_reference_cycle() -> SimulationResult:
+def run_reference_cycle(heat_pump_cop: float = HEAT_PUMP_COP) -> SimulationResult:
     """
     Calculate a simple saturated NH3 reference cycle.
     """
+    if heat_pump_cop <= 1.0:
+        raise ValueError("heat_pump_cop must be greater than 1.0")
+
     logger.info("Running unit cycle for mass-flow scaling")
     unit_cycle = _calculate_cycle(mass_flow=1.0)
     unit_generator_power = _required_float(
@@ -121,19 +144,49 @@ def run_reference_cycle() -> SimulationResult:
         GENERATOR_ELECTRICAL_POWER_NAME,
         generator.electrical_power,
     )
-    heat_pump_power = evaporator_heat / HEAT_PUMP_COP
+    heat_pump_power = evaporator_heat / heat_pump_cop
+    cold_reservoir_heat = evaporator_heat - heat_pump_power
+    generator_loss = turbine_power - generator_power
     net_power = generator_power - pump_power - heat_pump_power
+    external_power_import = max(-net_power, 0.0)
+    external_power_export = max(net_power, 0.0)
+    overall_inputs = cold_reservoir_heat + external_power_import
+    overall_outputs = condenser_heat + generator_loss + external_power_export
+    overall_residual = overall_inputs - overall_outputs
     logger.info(
         "Final powers: pump_W=%.6f, turbine_W=%.6f, generator_W=%.6f, "
-        "evaporator_heat_W=%.6f, condenser_heat_W=%.6f, "
-        "heat_pump_power_W=%.6f, net_power_W=%.6f",
+        "evaporator_heat_W=%.6f, condenser_heat_W=%.6f, heat_pump_power_W=%.6f, "
+        "cold_reservoir_heat_W=%.6f, net_power_W=%.6f",
         pump_power,
         turbine_power,
         generator_power,
         evaporator_heat,
         condenser_heat,
         heat_pump_power,
+        cold_reservoir_heat,
         net_power,
+    )
+    logger.info(
+        "Heat pump boundary: cold_reservoir_temperature_K=%.2f, "
+        "cold_reservoir_heat_W=%.6f, electrical_power_W=%.6f, "
+        "hot_heat_to_evaporator_W=%.6f, cop=%.6f; Evaporator.NH3.in is Rankine-cycle NH3, "
+        "not the heat-pump cold side",
+        COLD_RESERVOIR_TEMPERATURE,
+        cold_reservoir_heat,
+        heat_pump_power,
+        evaporator_heat,
+        heat_pump_cop,
+    )
+    logger.info(
+        "Overall plant balance: cold_reservoir_heat_W=%.6f, "
+        "external_power_import_W=%.6f, condenser_heat_W=%.6f, "
+        "generator_loss_W=%.6f, external_power_export_W=%.6f, residual_W=%.6f",
+        cold_reservoir_heat,
+        external_power_import,
+        condenser_heat,
+        generator_loss,
+        external_power_export,
+        overall_residual,
     )
 
     return SimulationResult(
@@ -146,21 +199,25 @@ def run_reference_cycle() -> SimulationResult:
         ),
         configuration={
             "fluid": "NH3",
+            "cold_reservoir_temperature_K": COLD_RESERVOIR_TEMPERATURE,
             "evaporation_temperature_K": EVAPORATION_TEMPERATURE,
             "condensation_temperature_K": CONDENSATION_TEMPERATURE,
             "pump_efficiency": PUMP_EFFICIENCY,
             "turbine_efficiency": TURBINE_EFFICIENCY,
             "generator_efficiency": GENERATOR_EFFICIENCY,
-            "heat_pump_cop": HEAT_PUMP_COP,
+            "heat_pump_cop": heat_pump_cop,
             "target_electrical_power_W": TARGET_ELECTRICAL_POWER,
         },
         parameters=[
+            _parameter("Cold reservoir temperature", COLD_RESERVOIR_TEMPERATURE, "K"),
             _parameter("Evaporation temperature", EVAPORATION_TEMPERATURE, "K"),
             _parameter("Condensation temperature", CONDENSATION_TEMPERATURE, "K"),
             _parameter("Mass flow", mass_flow, "kg/s"),
             _parameter("Unit electrical power", unit_generator_power, "W/(kg/s)"),
             _parameter("Target electrical power", TARGET_ELECTRICAL_POWER, "W"),
-            _parameter("Heat pump COP", HEAT_PUMP_COP, "-"),
+            _parameter("Heat pump COP", heat_pump_cop, "-"),
+            _parameter("Cold reservoir heat", cold_reservoir_heat, "W"),
+            _parameter("Heat pump electrical power", heat_pump_power, "W"),
         ],
         state_points=list(simulation.states.values()),
         connections=list(simulation.connections.values()),
@@ -198,12 +255,26 @@ def run_reference_cycle() -> SimulationResult:
                 heat_flow=condenser_heat,
             ),
             _component(
+                "PrescribedHeatPump",
+                input_ports=[],
+                output_ports=[],
+                input_states=[],
+                output_states=[],
+                cold_reservoir_temperature=COLD_RESERVOIR_TEMPERATURE,
+                cold_reservoir_heat_flow=cold_reservoir_heat,
+                hot_heat_flow=evaporator_heat,
+                electrical_power=heat_pump_power,
+                cop=heat_pump_cop,
+            ),
+            _component(
                 "Generator",
                 input_ports=[],
                 output_ports=[],
                 input_states=[],
                 output_states=[],
+                mechanical_power=turbine_power,
                 electrical_power=generator_power,
+                loss=generator_loss,
             ),
         ],
         balances=[
@@ -217,6 +288,34 @@ def run_reference_cycle() -> SimulationResult:
                     evaporator_heat + pump_power - turbine_power - condenser_heat
                 ) / evaporator_heat,
                 "passed": True,
+            },
+            {
+                "target": "prescribed_heat_pump",
+                "balance_type": "energy",
+                "inputs": cold_reservoir_heat + heat_pump_power,
+                "outputs": evaporator_heat,
+                "residual": cold_reservoir_heat + heat_pump_power - evaporator_heat,
+                "relative_error": abs(
+                    cold_reservoir_heat + heat_pump_power - evaporator_heat
+                )
+                / evaporator_heat,
+                "passed": True,
+            },
+            {
+                "target": "overall_plant",
+                "balance_type": "energy",
+                "inputs": overall_inputs,
+                "outputs": overall_outputs,
+                "residual": overall_residual,
+                "relative_error": abs(overall_residual) / overall_inputs,
+                "passed": abs(overall_residual) < 1.0e-6,
+                "terms": {
+                    "cold_reservoir_heat_W": cold_reservoir_heat,
+                    "external_power_import_W": external_power_import,
+                    "condenser_heat_W": condenser_heat,
+                    "generator_loss_W": generator_loss,
+                    "external_power_export_W": external_power_export,
+                },
             }
         ],
         efficiencies=[
@@ -231,6 +330,8 @@ def run_reference_cycle() -> SimulationResult:
                 "value": net_power / evaporator_heat,
                 "unit": "-",
             },
+            {"name": HEAT_PUMP_POWER_NAME, "value": heat_pump_power, "unit": "W"},
+            {"name": COLD_RESERVOIR_HEAT_NAME, "value": cold_reservoir_heat, "unit": "W"},
         ],
         validation=[
             _validation("positive_pump_power", pump_power > 0.0, pump_power, "W"),
@@ -238,15 +339,40 @@ def run_reference_cycle() -> SimulationResult:
             _validation("positive_evaporator_heat", evaporator_heat > 0.0, evaporator_heat, "W"),
             _validation("positive_condenser_heat", condenser_heat > 0.0, condenser_heat, "W"),
             _validation(
+                "positive_cold_reservoir_heat",
+                cold_reservoir_heat > 0.0,
+                cold_reservoir_heat,
+                "W",
+            ),
+            _validation(
                 "gross_power_matches_target",
                 abs(generator_power - TARGET_ELECTRICAL_POWER) < 1.0e-6,
                 generator_power,
+                "W",
+            ),
+            _validation(
+                "heat_pump_energy_balance",
+                abs(cold_reservoir_heat + heat_pump_power - evaporator_heat) < 1.0e-6,
+                cold_reservoir_heat + heat_pump_power - evaporator_heat,
                 "W",
             ),
         ],
         report={
             "summary": "Minimal saturated NH3 reference cycle calculated successfully.",
             "mass_flow_scaling": scaling_trace,
+            "heat_pump_energy_balance": {
+                "cold_reservoir_temperature_K": COLD_RESERVOIR_TEMPERATURE,
+                "cold_reservoir_heat_W": cold_reservoir_heat,
+                "electrical_power_W": heat_pump_power,
+                "hot_heat_to_cycle_W": evaporator_heat,
+                "cop_heating": heat_pump_cop,
+            },
+            "model_boundary": {
+                "evaporator_inlet_state": "Rankine-cycle NH3 after feed pump",
+                "heat_pump_cold_side": "Prescribed external source, not a material state point",
+                "cold_reservoir": "Infinite 8 degC reservoir with fixed temperature",
+                "calculation_mode": "Steady state; repeated cycles do not cool state points",
+            },
         },
     )
 
