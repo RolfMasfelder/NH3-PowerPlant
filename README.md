@@ -95,6 +95,8 @@ pytest tests/
 Beiträge sind willkommen! Bitte lies vor einem Pull Request die [CONTRIBUTING.md](CONTRIBUTING.md) (folgt).
 Für größere Änderungen bitte zunächst ein Issue eröffnen, um das Vorhaben zu besprechen.
 
+Die aktive Entwicklung erfolgt auf dem Branch `dev`. Änderungen am geschützten Branch `main` erfolgen ausschließlich über Pull Requests.
+
 ## Lizenz
 
 Dieses Projekt steht unter der MIT-Lizenz – siehe [LICENSE](LICENSE) für Details.
