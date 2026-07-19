@@ -7,6 +7,7 @@ It owns all components and all thermodynamic state points.
 
 from __future__ import annotations
 
+from nh3powerplant.connection.connection import Connection
 from nh3powerplant.components.component import Component
 from nh3powerplant.core.registry import Registry
 from nh3powerplant.state.statepoint import StatePoint
@@ -28,6 +29,7 @@ class Simulation:
         self._name = name
 
         self._components: Registry[Component] = Registry()
+        self._connections: Registry[Connection] = Registry()
         self._states: Registry[StatePoint] = Registry()
 
     @property
@@ -51,6 +53,13 @@ class Simulation:
         """
         return self._states
 
+    @property
+    def connections(self) -> Registry[Connection]:
+        """
+        Registry containing all connections.
+        """
+        return self._connections
+
     def add_component(
         self,
         component: Component,
@@ -69,11 +78,26 @@ class Simulation:
         """
         self._states.add(state)
 
+    def add_connection(
+        self,
+        connection: Connection,
+    ) -> None:
+        """
+        Add a connection to the simulation.
+        """
+        self._connections.add(connection)
+
     def number_of_components(self) -> int:
         """
         Return the number of registered components.
         """
         return len(self._components)
+
+    def number_of_connections(self) -> int:
+        """
+        Return the number of registered connections.
+        """
+        return len(self._connections)
 
     def number_of_states(self) -> int:
         """
@@ -83,7 +107,8 @@ class Simulation:
 
     def clear(self) -> None:
         """
-        Remove all components and all state points.
+        Remove all components, all connections, and all state points.
         """
         self._components.clear()
+        self._connections.clear()
         self._states.clear()

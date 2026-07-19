@@ -36,7 +36,8 @@ Alle Unit-Tests spiegeln die Paketstruktur wider (tests/unit/components/test_com
 ```txt
 NH3-PowerPlant/
 ├── docs/          # Dokumentation, Konzepte, Spezifikationen
-├── python/        # Python-Quellcode (Modelle, Simulationen, Tools)
+├── src/           # Python-Quellcode (Modelle, Simulationen, Tools)
+├── templates/     # Jinja2-Templates für Ergebnisberichte
 ├── data/          # Roh- und Verarbeitungsdaten
 ├── images/        # Grafiken, Diagramme, Abbildungen
 ├── tests/         # Automatisierte Tests
@@ -47,10 +48,20 @@ NH3-PowerPlant/
 └── CHANGELOG.md
 ```
 
+## Vorgehensweise
+
+1. Konzept in Markdown festhalten.
+2. Datenmodell daraus ableiten.
+3. Python-Klassen implementieren.
+4. Tests schreiben.
+5. Dokumentation automatisch erzeugen.
+
+mit "5. Dokumentation" ist die Dokumentation der Simulationsergebnisse gemeint, nicht die Projektdokumentation.
+
 ## Voraussetzungen
 
 - Python 3.13
-- Docker (empfohlen für eine reproduzierbare Entwicklungsumgebung)
+- virtuelles Python-Environment, zum Beispiel `venv/`
 
 ## Installation
 
@@ -59,7 +70,13 @@ git clone https://github.com/RolfMasfelder/NH3-PowerPlant.git
 cd NH3-PowerPlant
 python3 -m venv venv
 source venv/bin/activate
-pip install -r requirements.txt
+pip install -e ".[dev]"
+```
+
+Optionale Abhängigkeiten für Analysen und Notebooks:
+
+```bash
+pip install -e ".[analysis,notebook]"
 ```
 
 ## Nutzung
@@ -69,6 +86,7 @@ _Wird ergänzt, sobald erste lauffähige Module verfügbar sind._
 ## Tests
 
 ```bash
+source venv/bin/activate
 pytest tests/
 ```
 
@@ -76,6 +94,8 @@ pytest tests/
 
 Beiträge sind willkommen! Bitte lies vor einem Pull Request die [CONTRIBUTING.md](CONTRIBUTING.md) (folgt).
 Für größere Änderungen bitte zunächst ein Issue eröffnen, um das Vorhaben zu besprechen.
+
+Die aktive Entwicklung erfolgt auf dem Branch `dev`. Änderungen am geschützten Branch `main` erfolgen ausschließlich über Pull Requests.
 
 ## Lizenz
 
