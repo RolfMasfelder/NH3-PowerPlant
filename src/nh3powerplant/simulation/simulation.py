@@ -7,10 +7,15 @@ It owns all components and all thermodynamic state points.
 
 from __future__ import annotations
 
+import logging
+
 from nh3powerplant.connection.connection import Connection
 from nh3powerplant.components.component import Component
 from nh3powerplant.core.registry import Registry
 from nh3powerplant.state.statepoint import StatePoint
+
+
+logger = logging.getLogger(__name__)
 
 
 class Simulation:
@@ -87,6 +92,37 @@ class Simulation:
         """
         self._connections.add(connection)
 
+    def calculate(self) -> None:
+        """
+        Calculate all components once and transfer states along connections.
+        """
+        logger.debug(
+            "Simulation.calculate start: name=%s, components=%d, connections=%d, states=%d",
+            self._name,
+            len(self._components),
+            len(self._connections),
+            len(self._states),
+        )
+
+        for component in self._components:
+            logger.debug("Calculating component %s", component.identifier)
+            component.calculate()
+
+            for connection in self._outgoing_connections(component):
+                state = connection.transfer()
+                self._set_state(state)
+                logger.debug(
+                    "Transferred connection %s with state %s",
+                    connection.identifier,
+                    state.identifier,
+                )
+
+        logger.debug(
+            "Simulation.calculate done: name=%s, states=%d",
+            self._name,
+            len(self._states),
+        )
+
     def number_of_components(self) -> int:
         """
         Return the number of registered components.
@@ -112,3 +148,17 @@ class Simulation:
         self._components.clear()
         self._connections.clear()
         self._states.clear()
+
+    def _outgoing_connections(self, component: Component) -> list[Connection]:
+        return [
+            connection
+            for connection in self._connections
+            if connection.source.identifier.component == component.identifier.component
+            and connection.source.identifier.circuit == component.identifier.circuit
+        ]
+
+    def _set_state(self, state: StatePoint) -> None:
+        if state.identifier in self._states:
+            self._states.remove(state.identifier)
+
+        self._states.add(state)

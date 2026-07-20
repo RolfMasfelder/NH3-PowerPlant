@@ -74,3 +74,16 @@ class Fluid(ABC):
         Create a state point from pressure and specific entropy.
         """
         raise NotImplementedError
+
+    @abstractmethod
+    def state_from_temperature_quality(
+        self,
+        identifier: Identifier,
+        temperature: float,
+        vapor_quality: float,
+        mass_flow: float | None = None,
+    ) -> StatePoint:
+        """
+        Create a saturated state point from temperature and vapor quality.
+        """
+        raise NotImplementedError

@@ -105,6 +105,36 @@ class CoolPropFluid(Fluid):
             fluid=self.name,
         )
 
+    def state_from_temperature_quality(
+        self,
+        identifier: Identifier,
+        temperature: float,
+        vapor_quality: float,
+        mass_flow: float | None = None,
+    ) -> StatePoint:
+        """
+        Create a saturated state point from temperature and vapor quality.
+        """
+        self._validate_positive("temperature", temperature)
+        self._validate_quality(vapor_quality)
+
+        pressure = self._property("P", "T", temperature, "Q", vapor_quality)
+        enthalpy = self._property("Hmass", "T", temperature, "Q", vapor_quality)
+        entropy = self._property("Smass", "T", temperature, "Q", vapor_quality)
+        density = self._property("Dmass", "T", temperature, "Q", vapor_quality)
+
+        return StatePoint(
+            identifier=identifier,
+            pressure=pressure,
+            temperature=temperature,
+            enthalpy=enthalpy,
+            entropy=entropy,
+            density=density,
+            mass_flow=mass_flow,
+            vapor_quality=vapor_quality,
+            fluid=self.name,
+        )
+
     def _property(
         self,
         output: str,
@@ -140,3 +170,7 @@ class CoolPropFluid(Fluid):
     def _validate_positive(self, name: str, value: float) -> None:
         if value <= 0.0:
             raise ValidationError(f"{name} must be positive")
+
+    def _validate_quality(self, value: float) -> None:
+        if not 0.0 <= value <= 1.0:
+            raise ValidationError("vapor quality must be in [0, 1]")

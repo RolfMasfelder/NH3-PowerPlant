@@ -100,6 +100,27 @@ def test_state_from_pressure_entropy_roundtrip() -> None:
     assert reconstructed.density == pytest.approx(initial.density)
 
 
+def test_state_from_temperature_quality() -> None:
+    """
+    The fluid shall calculate saturated states from temperature and quality.
+    """
+
+    fluid = CoolPropFluid("NH3")
+
+    state = fluid.state_from_temperature_quality(
+        identifier=Identifier("Condenser", "NH3", "out"),
+        temperature=293.15,
+        vapor_quality=0.0,
+        mass_flow=1.0,
+    )
+
+    assert state.temperature == 293.15
+    assert state.vapor_quality == 0.0
+    assert state.mass_flow == 1.0
+    assert state.pressure is not None
+    assert state.enthalpy is not None
+
+
 def test_reject_empty_fluid_name() -> None:
     """
     Empty fluid names shall be rejected.

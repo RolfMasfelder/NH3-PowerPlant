@@ -44,7 +44,11 @@ Die Anlagenstruktur ist vollständig definiert, bevor eine Berechnung beginnt.
 
 Die Klasse `Simulation` verwaltet sämtliche Objekte einer Anlage.
 
-Sie enthält keine thermodynamischen Berechnungen.
+Sie enthält keine thermodynamischen Gleichungen.
+
+Für einfache, bereits geordnete Modelle kann `Simulation.calculate()` alle registrierten Komponenten einmal in Einfügereihenfolge berechnen und anschließend die ausgehenden Connections der jeweiligen Komponente aktualisieren.
+
+Dieser Ablauf ist ein deterministischer Einzeldurchlauf. Mehrfache Aufrufe von `Simulation.calculate()` propagieren Zustände erneut durch vorhandene Rückführungen, ersetzen aber keine Konvergenzprüfung.
 
 ---
 
@@ -57,6 +61,8 @@ Er
 * bestimmt die Reihenfolge der Berechnung,
 * erkennt gegebenenfalls Iterationen,
 * beendet die Berechnung nach Erreichen der Konvergenz.
+
+Für nichtlineare oder rückgekoppelte Modelle mit Konvergenzkriterium bleibt der Solver zuständig. Er kann dazu später wiederholt `Simulation.calculate()` oder komponentenspezifische Berechnungsschritte aufrufen.
 
 Der Solver enthält keine Gleichungen für einzelne Komponenten.
 
@@ -82,7 +88,7 @@ Connections transportieren Stoffströme zwischen Komponenten.
 
 Eine Connection besitzt genau einen StatePoint.
 
-Connections führen keine Berechnungen durch.
+Connections führen keine thermodynamischen Berechnungen durch. Sie übertragen den StatePoint des Quellports auf den Zielport.
 
 ---
 
